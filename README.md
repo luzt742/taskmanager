@@ -55,8 +55,6 @@ python -m http.server 8000
 
 ## GitHub部署说明
 
-由于GitHub仓库尚未创建，您需要按照以下详细步骤在GitHub上创建仓库：
-
 ### 步骤1：在GitHub网站上创建仓库
 1. 打开浏览器，访问 https://github.com 并登录您的账号 (luzt742)
 2. 点击页面右上角的 "+" 图标，选择 "New repository"
@@ -71,14 +69,26 @@ python -m http.server 8000
 git push -u origin main
 ```
 
-### 步骤3：访问您的仓库
-推送成功后，您可以通过以下URL访问仓库：
-https://github.com/luzt742/taskmanager
+### 步骤3：设置GitHub Pages
+推送成功后，设置GitHub Pages来托管您的任务管理器网站：
+1. 访问您的GitHub仓库：https://github.com/luzt742/taskmanager
+2. 点击仓库顶部的 "Settings" 选项卡
+3. 在左侧导航栏中选择 "Pages"
+4. 在 "Source" 部分，从下拉菜单中选择 "main" 分支
+5. 选择根目录 "/ (root)"
+6. 点击 "Save" 按钮
+7. 等待几分钟，GitHub会自动构建并部署您的网站
+8. 部署成功后，您将在页面顶部看到GitHub Pages URL，格式为：
+   ```
+   https://luzt742.github.io/taskmanager/
+   ```
 
 ### 注意事项
 - 如果推送时遇到权限问题，您可能需要设置SSH密钥或使用个人访问令牌
 - 确保您的GitHub账号有创建仓库的权限
-- 如果您已经创建了仓库但仍然无法推送，请检查仓库名称是否完全匹配（大小写敏感）
+- GitHub Pages网站通常需要1-5分钟来完成首次部署
+- 您可以通过GitHub Pages设置页面查看部署状态和日志
+- 任务管理器是一个纯静态网站，非常适合通过GitHub Pages托管
 
 ## 音效说明
 
