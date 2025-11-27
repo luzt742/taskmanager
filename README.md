@@ -57,7 +57,6 @@ python -m http.server 8000
 
 ### 步骤：设置GitHub Pages
 仓库已成功创建，代码已推送到远程仓库。现在设置GitHub Pages来托管您的任务管理器网站：
-推送成功后，设置GitHub Pages来托管您的任务管理器网站：
 1. 访问您的GitHub仓库：
 2. 点击仓库顶部的 "Settings" 选项卡
 3. 在左侧导航栏中选择 "Pages"
