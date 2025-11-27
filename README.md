@@ -55,21 +55,8 @@ python -m http.server 8000
 
 ## GitHub部署说明
 
-### 步骤1：在GitHub网站上创建仓库
-1. 打开浏览器，访问 https://github.com 并登录您的账号 (luzt742)
-2. 点击页面右上角的 "+" 图标，选择 "New repository"
-3. 在仓库名称字段中输入 "taskmanager"
-4. 重要：保持默认设置，不要勾选 "Initialize this repository with a README" 选项
-5. 不要添加 .gitignore 或许可证文件
-6. 点击 "Create repository" 按钮
-
-### 步骤2：推送本地代码到GitHub
-仓库创建成功后，回到本地终端执行以下命令：
-```bash
-git push -u origin main
-```
-
-### 步骤3：设置GitHub Pages
+### 步骤：设置GitHub Pages
+仓库已成功创建，代码已推送到远程仓库。现在设置GitHub Pages来托管您的任务管理器网站：
 推送成功后，设置GitHub Pages来托管您的任务管理器网站：
 1. 访问您的GitHub仓库：
 2. 点击仓库顶部的 "Settings" 选项卡
