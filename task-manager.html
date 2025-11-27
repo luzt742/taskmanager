@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <!-- Alpine.js CDN -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* 颜色选择器样式 */
+        .color-selector {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+        
+        .color-selector span {
+            margin-right: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .color-picker {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .color-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #ddd;
+            transition: border-color 0.3s;
+        }
+        
+        .color-preview:hover {
+            border-color: #333;
+        }
+        
+        .color-preview.small {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .color-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 5px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+        }
+        
+        .color-options.small {
+            top: auto;
+            bottom: 100%;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        
+        .color-option {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.2);
+            border-color: #333;
+        }
+        
+        /* 确保添加任务区域适应颜色选择器 */
+        .add-task {
+            align-items: center;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        /* 任务添加区域 */
+        .add-task {
+            display: flex;
+            margin-bottom: 30px;
+        }
+
+        #taskInput {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #taskInput:focus {
+            border-color: #3498db;
+        }
+
+        #addTaskBtn {
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #addTaskBtn:hover {
+            background-color: #2980b9;
+        }
+
+        /* 任务列表 */
+        .task-list {
+            list-style-type: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            border-left: 4px solid #3498db;
+        }
+
+        .task-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        .task-item.pending {
+            border-left-color: #3498db;
+        }
+
+        .task-item.in-progress {
+            border-left-color: #f39c12;
+            background-color: rgba(243, 156, 18, 0.05);
+        }
+
+        .task-item.completed {
+            border-left-color: #2ecc71;
+            background-color: rgba(46, 204, 113, 0.05);
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #7f8c8d;
+        }
+
+        .task-text {
+            flex: 1;
+            margin: 0 15px;
+            font-size: 16px;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
+        }
+
+        .btn-start {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .btn-start:hover {
+            background-color: #e67e22;
+        }
+
+        .btn-complete {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .btn-complete:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background-color: #c0392b;
+        }
+        
+        /* 任务操作区域样式 */
+        .task-actions {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+                padding: 15px;
+            }
+
+            .add-task {
+                flex-direction: column;
+            }
+
+            #taskInput,
+            #addTaskBtn {
+                border-radius: 4px;
+                width: 100%;
+            }
+
+            #taskInput {
+                margin-bottom: 10px;
+            }
+
+            .task-item {
+                flex-wrap: wrap;
+            }
+
+            .task-text {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .btn {
+                flex: 1;
+                margin: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" x-data="{
+        taskInput: '',
+        tasks: [],
+        selectedColor: '#3498db',
+        availableColors: ['#3498db', '#f39c12', '#2ecc71', '#e74c3c', '#9b59b6', '#1abc9c'],
+        showDancingMan: false,
+        showWritingMan: false,
+        showWavingMan: false,
+        showJumpingMan: false,
+        showStompingMan: false,
+        writingManTimer: null,
+        wavingManTimer: null,
+        jumpingManTimer: null,
+        stompingManTimer: null,
+
+        
+        init() {
+            // 初始化数据
+            const savedTasks = localStorage.getItem('tasks');
+            if (savedTasks) {
+                this.tasks = JSON.parse(savedTasks);
+            }
+        },
+        
+        saveTasks() {
+            // 保存任务到本地存储
+            localStorage.setItem('tasks', JSON.stringify(this.tasks));
+        },
+        
+        addTask() {
+            if (this.taskInput.trim() === '') {
+                // 移除弹窗提示，直接返回
+                return;
+            }
+            
+            // 确保其他小人动画关闭
+            this.showAngryMan = false;
+            this.showWavingMan = false;
+            
+            // 确保清除可能存在的旧定时器
+            if (this.angryManTimer) {
+                clearTimeout(this.angryManTimer);
+            }
+            if (this.wavingManTimer) {
+                clearTimeout(this.wavingManTimer);
+            }
+            
+            // 显示奋笔疾书小人动画
+            this.showWritingMan = true;
+            
+            this.tasks.push({
+                id: Date.now(),
+                text: this.taskInput.trim(),
+                status: 'pending',
+                color: this.selectedColor
+            });
+            
+            // 保存任务
+            this.saveTasks();
+            
+            this.taskInput = '';
+            // 聚焦输入框
+            document.getElementById('taskInput').focus();
+            
+            // 3秒后隐藏奋笔疾书小人
+            setTimeout(() => {
+                this.showWritingMan = false;
+            }, 3000);
+            
+            // 检查任务数量，当任务数量>=5时显示跺脚小人
+            if (this.tasks.length >= 5) {
+                this.showStompingMan = true;
+                
+                // 确保清除可能存在的旧定时器
+                if (this.stompingManTimer) {
+                    clearTimeout(this.stompingManTimer);
+                }
+                
+                // 保存定时器引用
+                this.stompingManTimer = setTimeout(() => {
+                    this.showStompingMan = false;
+                }, 3000);
+            }
+        },
+        
+        deleteTask(taskId) {
+            const task = this.tasks.find(t => t.id === taskId);
+            
+            this.tasks = this.tasks.filter(task => task.id !== taskId);
+            
+            // 保存任务
+            this.saveTasks();
+            
+            // 根据任务状态显示不同的动画
+            if (task && task.status === 'in-progress') {
+                // 彻底关闭所有其他动画
+                this.showWavingMan = false;
+                this.showJumpingMan = false;
+                this.showStompingMan = false;
+                this.showWritingMan = false;
+                this.showDancingMan = false;
+                
+                // 调用独立函数显示愤怒小人
+                showAngryManAnimation();
+            } else {
+                // 已完成或未开始的任务，显示挥手告别小人
+                
+                this.showWavingMan = true;
+                // 保存挥手小人定时器引用
+                this.wavingManTimer = setTimeout(() => {
+                    this.showWavingMan = false;
+                }, 3000);
+            }
+        },
+        
+        startTask(taskId) {
+            const task = this.tasks.find(task => task.id === taskId);
+            if (task && task.status === 'pending') {
+                task.status = 'in-progress';
+                
+                // 确保其他小人动画关闭
+                this.showAngryMan = false;
+                this.showWavingMan = false;
+                this.showStompingMan = false;
+                
+                // 显示跳跃小人动画
+                this.showJumpingMan = true;
+                
+                // 确保清除可能存在的旧定时器
+                if (this.jumpingManTimer) {
+                    clearTimeout(this.jumpingManTimer);
+                }
+                if (this.angryManTimer) {
+                    clearTimeout(this.angryManTimer);
+                }
+                
+                // 保存定时器引用
+                this.jumpingManTimer = setTimeout(() => {
+                    this.showJumpingMan = false;
+                }, 3000);
+                
+                // 保存任务状态
+                this.saveTasks();
+            }
+        },
+        
+        completeTask(taskId) {
+            const task = this.tasks.find(task => task.id === taskId);
+            if (task && (task.status === 'pending' || task.status === 'in-progress')) {
+                task.status = 'completed';
+                
+                // 保存任务
+                this.saveTasks();
+                
+                // 确保其他小人动画关闭
+                this.showAngryMan = false;
+                this.showWavingMan = false;
+                this.showStompingMan = false;
+                this.showJumpingMan = false;
+                
+                // 确保清除可能存在的旧定时器
+                if (this.angryManTimer) {
+                    clearTimeout(this.angryManTimer);
+                }
+                if (this.wavingManTimer) {
+                    clearTimeout(this.wavingManTimer);
+                }
+                if (this.jumpingManTimer) {
+                    clearTimeout(this.jumpingManTimer);
+                }
+                if (this.stompingManTimer) {
+                    clearTimeout(this.stompingManTimer);
+                }
+                
+                // 显示跳舞小人
+                this.showDancingMan = true;
+                
+                // 3秒后隐藏
+                setTimeout(() => {
+                    this.showDancingMan = false;
+                }, 3000);
+            }
+        },
+        
+
+        
+        changeTaskColor(taskId, color) {
+            const task = this.tasks.find(task => task.id === taskId);
+            if (task) {
+                task.color = color;
+                // 保存任务
+                this.saveTasks();
+            }
+        }
+    }">
+        <h1>Task Manager</h1>
+        
+        <div class="add-task">
+            <input 
+                type="text" 
+                id="taskInput"
+                x-model="taskInput" 
+                placeholder="Add a new task..." 
+                required
+            >
+            <button @click="addTask" id="addTaskBtn" :style="{ backgroundColor: selectedColor }">Add Task</button>
+            <div class="color-selector">
+                <span>Color:</span>
+                <div 
+                    class="color-picker"
+                    x-data="{ open: false }"
+                >
+                    <div 
+                        class="color-preview" 
+                        :style="{ backgroundColor: selectedColor }"
+                        @click="open = !open"
+                    ></div>
+                    <div class="color-options" x-show="open" @click.away="open = false">
+                        <template x-for="color in availableColors" :key="color">
+                            <div 
+                                class="color-option" 
+                                :style="{ backgroundColor: color }"
+                                @click="selectedColor = color; open = false"
+                            ></div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <ul class="task-list">
+            <!-- 任务列表 -->
+            <template x-for="task in tasks" :key="task.id">
+                <li 
+                    class="task-item" 
+                    :class="task.status"
+                    :style="{ borderLeftColor: task.color, backgroundColor: task.completed ? `${task.color}10` : task.status === 'in-progress' ? `${task.color}10` : '#f9f9f9' }"
+                >
+                    <span class="task-text" :class="{ 'completed': task.status === 'completed' }" x-text="task.text"></span>
+                    
+                    <div class="task-actions">
+                        <button 
+                            class="btn btn-start" 
+                            @click="startTask(task.id)"
+                            :disabled="task.status !== 'pending'"
+                            :style="{
+                                backgroundColor: task.status !== 'pending' ? '#95a5a6' : '#f39c12',
+                                cursor: task.status !== 'pending' ? 'not-allowed' : 'pointer'
+                            }"
+                            x-text="task.status === 'pending' ? 'Start' : task.status === 'in-progress' ? 'In Progress' : 'Completed'"
+                        ></button>
+                        
+                        <button 
+                            class="btn btn-complete" 
+                            @click="completeTask(task.id)"
+                            :disabled="task.status === 'completed'"
+                            :style="{
+                                backgroundColor: task.status === 'completed' ? '#95a5a6' : '#2ecc71',
+                                cursor: task.status === 'completed' ? 'not-allowed' : 'pointer'
+                            }"
+                        >Complete</button>
+                        
+                        <button 
+                            class="btn btn-delete" 
+                            @click="deleteTask(task.id)"
+                        >Delete</button>
+                        
+                        <!-- 任务颜色选择器 -->
+                        <div 
+                            class="color-selector small"
+                            x-data="{ open: false }"
+                            style="display: inline-block; margin-left: 10px;"
+                        >
+                            <div 
+                                class="color-preview small" 
+                                :style="{ backgroundColor: task.color }"
+                                @click="open = !open"
+                                style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid #ddd; cursor: pointer;"
+                            ></div>
+                            <div class="color-options small" x-show="open" @click.away="open = false" style="position: absolute; bottom: 100%; left: 0; margin-bottom: 5px; background: white; border: 1px solid #ddd; border-radius: 4px; padding: 5px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); z-index: 1000; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
+                                <template x-for="color in availableColors" :key="color">
+                                    <div 
+                                        class="color-option" 
+                                        :style="{ backgroundColor: color }"
+                                        @click="changeTaskColor(task.id, color); open = false"
+                                        style="width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s;"
+                                    ></div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </template>
+            
+            <!-- 空状态 -->
+            <li class="empty-state" x-show="tasks.length === 0">
+                <p>No tasks yet. Add a task above to get started!</p>
+            </li>
+        </ul>
+        
+        <!-- 跳舞小人元素 -->
+        <div 
+            id="dancing-man"
+            x-show="showDancingMan"
+            x-init="$watch('showDancingMan', val => { if(val) { setTimeout(() => { $el.classList.add('fade-in', 'zoom-in'); }, 10); } else { $el.classList.remove('fade-in', 'zoom-in'); $el.classList.add('fade-out'); setTimeout(() => { $el.classList.remove('fade-out'); }, 300); } })"
+            class="dancing-man"
+        >
+            <div class="man">
+                <div class="head"></div>
+                <div class="body"></div>
+                <div class="arm left"></div>
+                <div class="arm right"></div>
+                <div class="leg left"></div>
+                <div class="leg right"></div>
+            </div>
+            <div class="celebration-text">Task Completed!</div>
+        </div>
+        
+        <!-- 奋笔疾书小人元素 -->
+        <div 
+            id="writing-man"
+            x-show="showWritingMan"
+            x-init="$watch('showWritingMan', val => { if(val) { setTimeout(() => { $el.classList.add('fade-in', 'zoom-in'); }, 10); } else { $el.classList.remove('fade-in', 'zoom-in'); $el.classList.add('fade-out'); setTimeout(() => { $el.classList.remove('fade-out'); }, 300); } })"
+            class="writing-man"
+        >
+            <div class="writer">
+                <div class="head"></div>
+                <div class="body"></div>
+                <div class="arm left"></div>
+                <div class="arm right"></div>
+                <div class="leg left"></div>
+                <div class="leg right"></div>
+                <div class="pen"></div>
+                <div class="paper"></div>
+            </div>
+            <div class="writing-text">Adding Task...</div>
+        </div>
+        
+        <!-- 挥手告别小人元素 -->
+        <div 
+            id="waving-man"
+            x-show="showWavingMan"
+            x-init="$watch('showWavingMan', val => { if(val) { setTimeout(() => { $el.style.display = 'flex'; }, 10); } else { $el.style.display = 'none'; } })"
+            class="waving-man"
+        >
+            <div class="waving-person">
+                <div class="head"></div>
+                <div class="body"></div>
+                <div class="arm left"></div>
+                <div class="arm right"></div>
+                <div class="leg left"></div>
+                <div class="leg right"></div>
+            </div>
+            <div class="waving-text">Goodbye Task!</div>
+        </div>
+        
+        <!-- 跳跃欢呼小人元素 -->
+        <div 
+            id="jumping-man"
+            x-show="showJumpingMan"
+            x-init="$watch('showJumpingMan', val => { if(val) { setTimeout(() => { $el.classList.add('fade-in', 'zoom-in'); }, 10); } else { $el.classList.remove('fade-in', 'zoom-in'); $el.classList.add('fade-out'); setTimeout(() => { $el.classList.remove('fade-out'); }, 300); } })
+            "
+            class="jumping-man"
+        >
+            <div class="jumping-person">
+                <div class="head"></div>
+                <div class="body"></div>
+                <div class="arm left"></div>
+                <div class="arm right"></div>
+                <div class="leg left"></div>
+                <div class="leg right"></div>
+            </div>
+            <div class="jumping-text">Let's go!</div>
+        </div>
+        
+        <!-- 爆炸小人元素 - 替代跺脚小人 -->
+        <div 
+            id="stomping-man"
+            x-show="showStompingMan"
+            x-init="$watch('showStompingMan', val => { if(val) { setTimeout(() => { $el.classList.add('explode'); }, 10); } else { $el.classList.remove('explode'); } })"
+            class="exploding-man"
+        >
+            <div class="exploding-person">
+                <div class="head"></div>
+                <div class="body"></div>
+                <div class="arm left"></div>
+                <div class="arm right"></div>
+                <div class="leg left"></div>
+                <div class="leg right"></div>
+                <!-- 爆炸效果粒子 -->
+                <div class="particle p1"></div>
+                <div class="particle p2"></div>
+                <div class="particle p3"></div>
+                <div class="particle p4"></div>
+                <div class="particle p5"></div>
+                <div class="particle p6"></div>
+            </div>
+            <div class="exploding-text">Too many tasks!</div>
+        </div>
+        
+        <!-- 愤怒小人元素 - 极简设计，确保能显示 -->
+    <div 
+        id="angry-man"
+        class="angry-man"
+        style="display: none; position: fixed; bottom: 50px; right: 50px; z-index: 9999; background: transparent;"
+    >
+        <div class="angry-person">
+            <div class="head"></div>
+            <div class="body"></div>
+            <div class="arm left"></div>
+            <div class="arm right"></div>
+            <div class="leg left"></div>
+            <div class="leg right"></div>
+        </div>
+        <div class="angry-text">Really？！</div>
+    </div>
+    
+    <style>
+        /* 爆炸小人样式 - 替代跺脚小人 */
+        .exploding-man {
+            position: fixed;
+            bottom: 50px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .exploding-man.explode {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .exploding-person {
+            width: 60px;
+            height: 100px;
+            position: relative;
+        }
+        
+        .exploding-person .head {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #333;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.5s ease;
+        }
+        
+        .exploding-person .body {
+            width: 20px;
+            height: 40px;
+            background: #333;
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.5s ease;
+        }
+        
+        .exploding-person .arm {
+            width: 15px;
+            height: 8px;
+            background: #333;
+            position: absolute;
+            top: 40px;
+        }
+        
+        .exploding-person .arm.left {
+            left: 10px;
+            transform: rotate(-45deg);
+            transition: all 0.5s ease;
+        }
+        
+        .exploding-person .arm.right {
+            right: 10px;
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+        }
+        
+        .exploding-person .leg {
+            width: 8px;
+            height: 30px;
+            background: #333;
+            position: absolute;
+            top: 70px;
+            transition: all 0.5s ease;
+        }
+        
+        .exploding-person .leg.left {
+            left: 18px;
+            transition: all 0.5s ease;
+        }
+        
+        .exploding-person .leg.right {
+            right: 18px;
+            transition: all 0.5s ease;
+        }
+        
+        /* 爆炸粒子 */
+        .exploding-person .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.1s ease;
+        }
+        
+        .particle.p1 { top: 20px; left: 30px; --x-offset: -20px; --y-offset: -10px; }
+        .particle.p2 { top: 30px; left: 15px; --x-offset: -30px; --y-offset: 10px; }
+        .particle.p3 { top: 40px; left: 45px; --x-offset: 20px; --y-offset: -20px; }
+        .particle.p4 { top: 60px; left: 20px; --x-offset: -15px; --y-offset: 25px; }
+        .particle.p5 { top: 50px; left: 40px; --x-offset: 25px; --y-offset: 15px; }
+        .particle.p6 { top: 70px; left: 30px; --x-offset: 10px; --y-offset: 30px; }
+        
+        .exploding-text {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 16px;
+            animation: shake-exploding 0.2s ease-in-out infinite;
+        }
+        
+        /* 爆炸动画 - 当添加explode类时触发 */
+        .exploding-man.explode .exploding-person .head {
+            animation: explode-head 1s ease forwards;
+        }
+        
+        .exploding-man.explode .exploding-person .body {
+            animation: explode-body 1s ease forwards;
+        }
+        
+        .exploding-man.explode .exploding-person .arm.left {
+            animation: explode-left-arm 1s ease forwards;
+        }
+        
+        .exploding-man.explode .exploding-person .arm.right {
+            animation: explode-right-arm 1s ease forwards;
+        }
+        
+        .exploding-man.explode .exploding-person .leg.left {
+            animation: explode-left-leg 1s ease forwards;
+        }
+        
+        .exploding-man.explode .exploding-person .leg.right {
+            animation: explode-right-leg 1s ease forwards;
+        }
+        
+        /* 爆炸粒子动画 */
+        .exploding-man.explode .exploding-person .particle {
+            animation: explode-particles 1.2s ease forwards;
+        }
+        
+        .exploding-man.explode .exploding-person .p1 {
+            animation-delay: 0.1s;
+        }
+        
+        .exploding-man.explode .exploding-person .p2 {
+            animation-delay: 0.2s;
+        }
+        
+        .exploding-man.explode .exploding-person .p3 {
+            animation-delay: 0.3s;
+        }
+        
+        .exploding-man.explode .exploding-person .p4 {
+            animation-delay: 0.4s;
+        }
+        
+        .exploding-man.explode .exploding-person .p5 {
+            animation-delay: 0.5s;
+        }
+        
+        .exploding-man.explode .exploding-person .p6 {
+            animation-delay: 0.6s;
+        }
+        
+        /* 爆炸动画关键帧 */
+        @keyframes explode-head {
+            0% { transform: translate(-50%, 0) scale(1); }
+            50% { transform: translate(-50%, -20px) scale(1.2); }
+            100% { transform: translate(-50%, -40px) scale(0); opacity: 0; }
+        }
+        
+        @keyframes explode-body {
+            0% { transform: translate(-50%, 0) scale(1); }
+            100% { transform: translate(-50%, 10px) scale(0); opacity: 0; }
+        }
+        
+        @keyframes explode-left-arm {
+            0% { transform: rotate(-45deg); }
+            100% { transform: translate(-30px, -20px) rotate(-90deg); opacity: 0; }
+        }
+        
+        @keyframes explode-right-arm {
+            0% { transform: rotate(45deg); }
+            100% { transform: translate(30px, -20px) rotate(90deg); opacity: 0; }
+        }
+        
+        @keyframes explode-left-leg {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-20px, 30px); opacity: 0; }
+        }
+        
+        @keyframes explode-right-leg {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(20px, 30px); opacity: 0; }
+        }
+        
+        @keyframes explode-particles {
+            0% { opacity: 0; transform: translate(0, 0) scale(0); }
+            20% { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(calc(var(--x-offset, 0px) + var(--y-offset, 0px)), calc(var(--y-offset, 0px) + var(--x-offset, 0px))) scale(1); }
+        }
+        
+        @keyframes shake-exploding {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+        
+        /* 愤怒小人样式 */
+        .angry-man {
+            position: fixed;
+            bottom: 20px;
+            right: 100px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .angry-person {
+            position: relative;
+            width: 40px;
+            height: 80px;
+        }
+        
+        .angry-person .head {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background-color: #333;
+            border-radius: 50%;
+        }
+        
+        .angry-person .body {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 30px;
+            background-color: #333;
+            border-radius: 5px;
+        }
+        
+        .angry-person .arm {
+            position: absolute;
+            top: 35px;
+            width: 8px;
+            height: 25px;
+            background-color: #333;
+            border-radius: 4px;
+        }
+        
+        .angry-person .arm.left {
+            left: 0;
+            transform: rotate(45deg);
+            animation: angry-arm 0.3s ease-in-out infinite alternate;
+        }
+        
+        .angry-person .arm.right {
+            right: 0;
+            transform: rotate(-45deg);
+            animation: angry-arm 0.3s ease-in-out infinite alternate-reverse;
+        }
+        
+        .angry-person .leg {
+            position: absolute;
+            bottom: 0;
+            width: 8px;
+            height: 20px;
+            background-color: #333;
+            border-radius: 4px;
+        }
+        
+        .angry-person .leg.left {
+            left: 5px;
+        }
+        
+        .angry-person .leg.right {
+            right: 5px;
+        }
+        
+        .angry-text {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            animation: shake-text 0.5s ease-in-out infinite;
+        }
+        
+        /* 愤怒手臂动画 */
+        @keyframes angry-arm {
+            0% {
+                transform: rotate(45deg);
+            }
+            100% {
+                transform: rotate(60deg);
+            }
+        }
+        
+        /* 文字抖动动画 */
+        @keyframes shake-text {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-5px);
+            }
+            75% {
+                transform: translateX(5px);
+            }
+        }
+        
+        /* 挥手告别小人样式 */
+        .waving-man {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: float-away 3s forwards;
+        }
+        
+        .waving-person {
+            width: 60px;
+            height: 100px;
+            position: relative;
+        }
+        
+        .waving-person .head {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #333;
+            position: absolute;
+            top: 0;
+            left: 15px;
+        }
+        
+        .waving-person .body {
+            width: 10px;
+            height: 40px;
+            background: #333;
+            position: absolute;
+            top: 30px;
+            left: 25px;
+        }
+        
+        .waving-person .arm {
+            width: 8px;
+            height: 30px;
+            background: #333;
+            position: absolute;
+            top: 35px;
+            transform-origin: top center;
+        }
+        
+        .waving-person .arm.left {
+            left: 12px;
+            transform: rotate(30deg);
+        }
+        
+        .waving-person .arm.right {
+            left: 40px;
+            animation: waving-arm 1.2s infinite ease-in-out;
+        }
+        
+        .waving-person .leg {
+            width: 8px;
+            height: 30px;
+            background: #333;
+            position: absolute;
+            top: 70px;
+            transform-origin: top center;
+        }
+        
+        .waving-person .leg.left {
+            left: 18px;
+            transform: rotate(15deg);
+        }
+        
+        .waving-person .leg.right {
+            left: 34px;
+            transform: rotate(-15deg);
+        }
+        
+        .waving-text {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        /* 挥手告别动画 */
+        @keyframes waving-arm {
+            0% { transform: rotate(-30deg); }
+            25% { transform: rotate(70deg); }
+            50% { transform: rotate(-10deg); }
+            75% { transform: rotate(50deg); }
+            100% { transform: rotate(-30deg); }
+        }
+        
+        /* 飞离动画 */
+        @keyframes float-away {
+            0% { 
+                transform: translateY(0) rotate(0deg); 
+                opacity: 1;
+            }
+            70% { 
+                transform: translateY(-100px) rotate(10deg); 
+                opacity: 1;
+            }
+            100% { 
+                transform: translateY(-150px) rotate(20deg); 
+                opacity: 0;
+            }
+        }
+        
+        /* 跳跃欢呼小人样式 */
+        .jumping-man {
+            position: fixed;
+            bottom: 40px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .jumping-person {
+            width: 60px;
+            height: 100px;
+            position: relative;
+            animation: jumping 1s infinite;
+        }
+        
+        .jumping-person .head {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #333;
+            position: absolute;
+            top: 0;
+            left: 15px;
+        }
+        
+        .jumping-person .body {
+            width: 10px;
+            height: 40px;
+            background: #333;
+            position: absolute;
+            top: 30px;
+            left: 25px;
+        }
+        
+        .jumping-person .arm {
+            width: 8px;
+            height: 30px;
+            background: #333;
+            position: absolute;
+            top: 35px;
+            transform-origin: top center;
+            animation: cheering 0.5s infinite;
+        }
+        
+        .jumping-person .arm.left {
+            left: 12px;
+            transform: rotate(-45deg);
+        }
+        
+        .jumping-person .arm.right {
+            left: 40px;
+            transform: rotate(45deg);
+        }
+        
+        .jumping-person .leg {
+            width: 8px;
+            height: 30px;
+            background: #333;
+            position: absolute;
+            top: 70px;
+            transform-origin: top center;
+        }
+        
+        .jumping-person .leg.left {
+            left: 18px;
+            transform: rotate(12deg);
+        }
+        
+        .jumping-person .leg.right {
+            left: 34px;
+            transform: rotate(-12deg);
+        }
+        
+        .jumping-text {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #f39c12;
+        }
+        
+        /* 跳跃动画 */
+        @keyframes jumping {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0) rotate(0deg); }
+            10% { transform: translateY(-30px) rotate(-2deg); }
+            30% { transform: translateY(-20px) rotate(2deg); }
+            60% { transform: translateY(-15px) rotate(-1deg); }
+            90% { transform: translateY(-10px) rotate(1deg); }
+        }
+        
+        /* 欢呼动画 */
+        @keyframes cheering {
+            0% { transform: rotate(-45deg); }
+            50% { transform: rotate(-70deg); }
+            100% { transform: rotate(-45deg); }
+        }
+        
+        .jumping-person .arm.right {
+            animation: cheering 0.5s infinite alternate-reverse;
+        }
+        
+        /* 跳舞小人样式 */
+        .dancing-man {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: bounce 1s infinite alternate;
+        }
+        
+        .man {
+            width: 60px;
+            height: 100px;
+            position: relative;
+        }
+        
+        .head {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #333;
+            position: absolute;
+            top: 0;
+            left: 15px;
+        }
+        
+        .body {
+            width: 10px;
+            height: 40px;
+            background: #333;
+            position: absolute;
+            top: 30px;
+            left: 25px;
+        }
+        
+        .arm {
+            width: 8px;
+            height: 30px;
+            background: #333;
+            position: absolute;
+            top: 35px;
+            transform-origin: top center;
+        }
+        
+        .arm.left {
+            left: 12px;
+            animation: dance-left-arm 0.8s infinite alternate;
+        }
+        
+        .arm.right {
+            left: 40px;
+            animation: dance-right-arm 0.8s infinite alternate-reverse;
+        }
+        
+        .leg {
+            width: 8px;
+            height: 30px;
+            background: #333;
+            position: absolute;
+            top: 70px;
+            transform-origin: top center;
+        }
+        
+        .leg.left {
+            left: 18px;
+            animation: dance-left-leg 0.8s infinite alternate;
+        }
+        
+        .leg.right {
+            left: 34px;
+            animation: dance-right-leg 0.8s infinite alternate-reverse;
+        }
+        
+        .celebration-text {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2ecc71;
+        }
+        
+        /* 跳舞动画 */
+        @keyframes dance-left-arm {
+            0% { transform: rotate(15deg); }
+            100% { transform: rotate(-100deg); }
+        }
+        
+        @keyframes dance-right-arm {
+            0% { transform: rotate(-15deg); }
+            100% { transform: rotate(100deg); }
+        }
+        
+        @keyframes dance-left-leg {
+            0% { transform: rotate(30deg); }
+            100% { transform: rotate(-10deg); }
+        }
+        
+        @keyframes dance-right-leg {
+            0% { transform: rotate(-30deg); }
+            100% { transform: rotate(10deg); }
+        }
+        
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-10px); }
+        }
+        
+        /* 过渡动画定义 */
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes zoomIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        /* 过渡动画类 */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .zoom-in {
+            animation: zoomIn 0.3s ease-out;
+        }
+        
+        .fade-out {
+            animation: fadeOut 0.3s ease-in-out;
+        }
+        
+        /* 奋笔疾书小人样式 */
+        .writing-man {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .writer {
+            width: 60px;
+            height: 100px;
+            position: relative;
+        }
+        
+        .writer .head {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #333;
+            position: absolute;
+            top: 0;
+            left: 15px;
+        }
+        
+        .writer .body {
+            width: 10px;
+            height: 40px;
+            background: #333;
+            position: absolute;
+            top: 30px;
+            left: 25px;
+        }
+        
+        .writer .arm {
+            width: 8px;
+            height: 30px;
+            background: #333;
+            position: absolute;
+            top: 35px;
+            transform-origin: top center;
+        }
+        
+        .writer .arm.left {
+            left: 12px;
+            transform: rotate(30deg);
+        }
+        
+        .writer .arm.right {
+            left: 40px;
+            transform: rotate(-45deg);
+            animation: writing-arm 0.5s infinite alternate;
+        }
+        
+        .writer .leg {
+            width: 8px;
+            height: 30px;
+            background: #333;
+            position: absolute;
+            top: 70px;
+            transform-origin: top center;
+        }
+        
+        .writer .leg.left {
+            left: 18px;
+            transform: rotate(15deg);
+        }
+        
+        .writer .leg.right {
+            left: 34px;
+            transform: rotate(-15deg);
+        }
+        
+        .writer .pen {
+            width: 15px;
+            height: 4px;
+            background: #666;
+            position: absolute;
+            top: 50px;
+            left: 55px;
+            transform: rotate(-60deg);
+            animation: writing-pen 0.5s infinite alternate;
+        }
+        
+        .writer .paper {
+            width: 40px;
+            height: 30px;
+            background: #fff;
+            border: 2px solid #ddd;
+            position: absolute;
+            top: 45px;
+            left: 50px;
+            border-radius: 2px;
+        }
+        
+        .writing-text {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        /* 书写动画 */
+        @keyframes writing-arm {
+            0% { transform: rotate(-45deg); }
+            100% { transform: rotate(-65deg); }
+        }
+        
+        @keyframes writing-pen {
+            0% { transform: rotate(-60deg) translateX(0); }
+            100% { transform: rotate(-60deg) translateX(5px); }
+        }
+    </style>
+<!-- 独立的JavaScript函数，使用最简单直接的方式 -->
+    <script>
+        // 创建Web Audio Context用于生成音效
+        let audioContext;
+        
+        // 初始化Audio Context（需要用户交互后才能使用）
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioContext;
+        }
+        
+        // 生成并播放尖叫音效
+        function playScreamSound() {
+            try {
+                const context = initAudioContext();
+                
+                // 创建振荡器节点
+                const oscillator = context.createOscillator();
+                // 创建音量节点
+                const gainNode = context.createGain();
+                
+                // 连接节点
+                oscillator.connect(gainNode);
+                gainNode.connect(context.destination);
+                
+                // 设置尖叫音效参数 - 不尖锐，持续1秒
+                oscillator.type = 'triangle'; // 三角形波形比较圆润，不像锯齿波那么尖锐
+                
+                // 设置音量曲线，避免爆音
+                gainNode.gain.setValueAtTime(0, context.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.3, context.currentTime + 0.1); // 温和地增加到适中音量
+                gainNode.gain.setValueAtTime(0.3, context.currentTime + 0.8); // 保持稳定音量
+                gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 1.0); // 平滑淡出
+                
+                // 设置频率变化，模拟尖叫效果
+                oscillator.frequency.setValueAtTime(300, context.currentTime); // 中等偏低的起始频率
+                oscillator.frequency.linearRampToValueAtTime(500, context.currentTime + 0.3); // 上升到中等频率
+                oscillator.frequency.linearRampToValueAtTime(400, context.currentTime + 0.7); // 略微下降
+                oscillator.frequency.linearRampToValueAtTime(550, context.currentTime + 1.0); // 最后上升
+                
+                // 播放持续1秒
+                oscillator.start(context.currentTime);
+                oscillator.stop(context.currentTime + 1.0);
+            } catch (error) {
+                console.log('无法播放音效:', error);
+            }
+        }
+        
+        // 生成并播放欢快音效（用于完成任务的跳舞小人）
+        function playHappySound() {
+            try {
+                const context = initAudioContext();
+                
+                // 创建振荡器节点
+                const oscillator = context.createOscillator();
+                // 创建音量节点
+                const gainNode = context.createGain();
+                
+                // 连接节点
+                oscillator.connect(gainNode);
+                gainNode.connect(context.destination);
+                
+                // 设置欢快音效参数 - 明亮欢快，持续1秒
+                oscillator.type = 'sine'; // 正弦波更柔和、更明亮
+                
+                // 设置音量曲线，避免爆音
+                gainNode.gain.setValueAtTime(0, context.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.25, context.currentTime + 0.05); // 快速增加到适中音量
+                gainNode.gain.setValueAtTime(0.25, context.currentTime + 0.9); // 保持稳定音量
+                gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 1.0); // 平滑淡出
+                
+                // 设置欢快的频率变化，使用上下跳动的音调模拟欢快的感觉
+                const now = context.currentTime;
+                oscillator.frequency.setValueAtTime(523, now); // C5 (do)
+                oscillator.frequency.linearRampToValueAtTime(659, now + 0.2); // E5 (mi)
+                oscillator.frequency.linearRampToValueAtTime(784, now + 0.4); // G5 (sol)
+                oscillator.frequency.linearRampToValueAtTime(1047, now + 0.6); // C6 (高音do)
+                oscillator.frequency.linearRampToValueAtTime(784, now + 0.8); // G5 (sol)
+                oscillator.frequency.linearRampToValueAtTime(659, now + 0.9); // E5 (mi)
+                oscillator.frequency.linearRampToValueAtTime(523, now + 1.0); // C5 (do) - 回到起点形成完整旋律
+                
+                // 播放持续1秒
+                oscillator.start(now);
+                oscillator.stop(now + 1.0);
+            } catch (error) {
+                console.log('无法播放欢快音效:', error);
+            }
+        }
+        
+        // 添加用户交互初始化AudioContext（浏览器安全策略要求）
+        document.addEventListener('click', function initOnFirstClick() {
+            initAudioContext();
+            // 移除事件监听器，只需要初始化一次
+            document.removeEventListener('click', initOnFirstClick);
+        }, { once: true });
+        
+        // 为爆炸小人添加音效监听
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为爆炸小人添加音效监听
+            const stompingMan = document.getElementById('stomping-man');
+            if (stompingMan) {
+                // 监听类变化，当添加explode类时播放音效
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.attributeName === 'class') {
+                            const hasExplodeClass = stompingMan.classList.contains('explode');
+                            if (hasExplodeClass) {
+                                playScreamSound();
+                            }
+                        }
+                    });
+                });
+                
+                // 开始观察类属性变化
+                observer.observe(stompingMan, { attributes: true });
+            }
+            
+            // 为跳舞小人添加音效监听
+            const dancingMan = document.getElementById('dancing-man');
+            if (dancingMan) {
+                // 监听类变化，当添加fade-in或zoom-in类时播放欢快音效
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.attributeName === 'class') {
+                            const hasFadeInClass = dancingMan.classList.contains('fade-in');
+                            const hasZoomInClass = dancingMan.classList.contains('zoom-in');
+                            if (hasFadeInClass || hasZoomInClass) {
+                                playHappySound();
+                            }
+                        }
+                    });
+                });
+                
+                // 开始观察类属性变化
+                observer.observe(dancingMan, { attributes: true });
+            }
+        });
+        
+        // 愤怒小人显示函数 - 修复缩进和结构，确保3秒显示时间
+        function showAngryManAnimation() {
+            // 获取愤怒小人元素
+            const angryMan = document.getElementById('angry-man');
+            if (!angryMan) return;
+            
+            // 立即显示元素（无过渡效果）
+            angryMan.style.display = 'flex';
+            angryMan.style.opacity = '1';
+            angryMan.style.transition = 'none';
+            
+            // 3秒后开始隐藏流程
+            setTimeout(() => {
+                // 启用淡出过渡
+                angryMan.style.transition = 'opacity 0.3s ease';
+                angryMan.style.opacity = '0';
+                
+                // 淡出完成后完全隐藏
+                setTimeout(() => {
+                    angryMan.style.display = 'none';
+                }, 300);
+            }, 3000);
+        }
+    </script>
+    </body>
+</html>
