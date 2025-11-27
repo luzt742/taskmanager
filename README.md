@@ -40,10 +40,10 @@
 
 这是一个纯前端应用，可以通过以下方式运行：
 
-1. 克隆仓库
+1. 克隆仓库（创建GitHub仓库后）
 ```bash
-git clone [repository-url]
-cd task-manager
+git clone https://github.com/luzt742/taskmanager.git
+cd taskmanager
 ```
 
 2. 使用Python简单HTTP服务器运行
@@ -52,6 +52,33 @@ python -m http.server 8000
 ```
 
 3. 在浏览器中访问 `http://localhost:8000`
+
+## GitHub部署说明
+
+由于GitHub仓库尚未创建，您需要按照以下详细步骤在GitHub上创建仓库：
+
+### 步骤1：在GitHub网站上创建仓库
+1. 打开浏览器，访问 https://github.com 并登录您的账号 (luzt742)
+2. 点击页面右上角的 "+" 图标，选择 "New repository"
+3. 在仓库名称字段中输入 "taskmanager"
+4. 重要：保持默认设置，不要勾选 "Initialize this repository with a README" 选项
+5. 不要添加 .gitignore 或许可证文件
+6. 点击 "Create repository" 按钮
+
+### 步骤2：推送本地代码到GitHub
+仓库创建成功后，回到本地终端执行以下命令：
+```bash
+git push -u origin main
+```
+
+### 步骤3：访问您的仓库
+推送成功后，您可以通过以下URL访问仓库：
+https://github.com/luzt742/taskmanager
+
+### 注意事项
+- 如果推送时遇到权限问题，您可能需要设置SSH密钥或使用个人访问令牌
+- 确保您的GitHub账号有创建仓库的权限
+- 如果您已经创建了仓库但仍然无法推送，请检查仓库名称是否完全匹配（大小写敏感）
 
 ## 音效说明
 
